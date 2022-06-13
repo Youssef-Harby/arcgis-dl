@@ -74,7 +74,7 @@ def update_dict(d, u):
 def get_json(url, params={}):
     kwargs = {'headers': {}, 'params': {}}
     kwargs['headers']['User-Agent'] = 'ArcGIS Pro 2.7.0 (00000000000) - ArcGISPro'
-    kwargs['params']['f'] = 'json'
+    kwargs['params']['f'] = 'pjson'
     if config['token'] is not None:
         kwargs['params']['token'] = config['token']
     update_dict(kwargs['params'], params)
@@ -119,7 +119,7 @@ def get_services(site_url):
 
         if site_data.get('folders'):
             for folder in site_data['folders']:
-                folder_url = site_url + '/' + folder
+                folder_url = site_url + '/'
                 print('Found folder', folder_url)
                 queue.append(folder_url)
 
@@ -180,7 +180,7 @@ def get_query(layer_url):
 
     if config['layer_format'] in supportedQueryFormats:
         query_params['f'] = config['layer_format']
-    elif 'json' in supportedQueryFormats:
+    elif 'pjson' in supportedQueryFormats:
         print('Falling back to json query format -', config['layer_format'], 'is not supported')
         query_params['f'] = 'pjson'
     else:
