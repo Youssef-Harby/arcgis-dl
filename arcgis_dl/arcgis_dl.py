@@ -182,7 +182,7 @@ def get_query(layer_url):
         query_params['f'] = config['layer_format']
     elif 'json' in supportedQueryFormats:
         print('Falling back to json query format -', config['layer_format'], 'is not supported')
-        query_params['f'] = 'json'
+        query_params['f'] = 'pjson'
     else:
         print('Skipping - supported query formats are', supportedQueryFormats)
         return
