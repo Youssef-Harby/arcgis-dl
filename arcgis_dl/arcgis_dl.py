@@ -129,7 +129,7 @@ def get_services(site_url):
                     print(f"Skipping - {service['name']}")
                     continue
 
-                service_url = site_url + '/' + service['name'] + '/' + service['type']
+                service_url = site_url + '/' + service['name'].split('/')[1] + '/' + service['type']
                 print('Found service', service_url)
                 service_urls.append(service_url)
 
