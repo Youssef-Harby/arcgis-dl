@@ -4,7 +4,7 @@ from arcgis_dl.arcgis_dl import config, get_services, get_layers, get_query, wri
 import re
 
 st.title('ArcGIS Server Downloader')
-arc_url = st.text_input('ArcGIS Server Url','https://www.esrs.wmich.edu/arcgis/rest/services/Saudi')
+arc_url = st.text_input('ArcGIS Server Url','https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',placeholder='Server or Folder or Layer')
 arc_token_1 = st.text_input('ArcGIS Server Token')
 arc_token_2 = st.text_input('ArcGIS Server Token ALT')
 
