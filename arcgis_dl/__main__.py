@@ -1,8 +1,8 @@
 import argparse
 import re
-import sys
-
+import time
 from .arcgis_dl import config, get_services, get_layers, get_query, write_layer
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -30,23 +30,25 @@ def main():
         url = url.rstrip('/')
         if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
             query = get_query(url)
+            get_time = time.asctime(time.localtime(time.time()))
             if query is not None:
                 layer, layer_data, layer_format = query
-                write_layer(layer, layer_data, url, layer_format)
+                write_layer(layer, layer_data, url, layer_format, get_time)
         elif re.search('/[A-Z][A-Za-z]+Server$', url):
             for layer_url in get_layers(url):
                 query = get_query(layer_url)
+                get_time = time.asctime(time.localtime(time.time()))
                 if query is not None:
                     layer, layer_data, layer_format = query
-                    write_layer(layer, layer_data, layer_url, layer_format)
-        #elif re.search('/rest/services$', url):
+                    write_layer(layer, layer_data, layer_url, layer_format, get_time)
+        # elif re.search('/rest/services$', url):
         else:
             for service_url in get_services(url):
                 for layer_url in get_layers(service_url):
                     query = get_query(layer_url)
+                    get_time = time.asctime(time.localtime(time.time()))
                     if query is not None:
                         layer, layer_data, layer_format = query
-                        write_layer(layer, layer_data, layer_url, layer_format)
-
+                        write_layer(layer, layer_data, layer_url, layer_format, get_time)
 
 main()

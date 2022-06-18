@@ -3,6 +3,7 @@ import os
 import re
 import traceback
 import requests
+from .metadata import write_metadata
 
 config = {
     'timeout': 900,
@@ -25,6 +26,10 @@ def write_json(data, path):
     makedirs(path)
     with open(path, 'w') as fp:
         json.dump(data, fp=fp)
+    
+def write_data(path, time):
+    makedirs(path)
+    write_metadata(path, time)
 
 def read_json(path):
     with open(path, 'rb') as fp:
@@ -47,14 +52,15 @@ def simplify_path(layer_data, layer_url, layer_format):
         parent_layer_data = get_json(parent_layer_url)
         parent_layer = parent_layer_data.get('parentLayer')
 
-    filename = layer_data['name'] + '.' + layer_format
+    filename = layer_data['name'].replace(" ", "") + '.' + layer_format
     return os.path.join(first, second, filename)
 
-def write_layer(layer, layer_data, layer_url, layer_format):
+def write_layer(layer, layer_data, layer_url, layer_format, time):
     path = os.path.join(config['layer_dir'],
                         simplify_path(layer_data, layer_url, layer_format))
     print('Writing', path)
     write_json(layer, path)
+    write_data(path, time)
 
 def sort_dict(d):
     for key in sorted(d.keys()):
