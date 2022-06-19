@@ -8,11 +8,12 @@ from arcgis_dl.metadata import (
 )
 import pandas as pd
 import re
+
 try:
     metadatas = load_metadata()
-    st.write(metadatas)
+    # st.write(metadatas)
 except:
-    pass
+    init_metadata()
 
 
 def downloading(url, time_str, metadatas):
