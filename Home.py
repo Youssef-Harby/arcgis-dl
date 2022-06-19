@@ -32,27 +32,27 @@ arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline
 arc_token_1 = st.text_input('ArcGIS Server Token')
 if arc_token_1:
     config['token'] = arc_token_1
-arc_token_2 = st.text_input('ArcGIS Server Token ALT')
 
 user_input_date = st.date_input(
     "Comparing data changes date: ")
 user_input_time = st.time_input(
-    "Set an alarm for: ")
+    "Comparing data changes time: ")
 user_date_time = datetime.datetime.combine(user_input_date, user_input_time)
 st.write('Your selected comparing date is: ', user_date_time)
 
 if st.button('Download'):
-    url = arc_url.rstrip('/')
-    if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
-        downloading(url, user_input_date, metadatas)
-    elif re.search('/[A-Z][A-Za-z]+Server$', url):
-        for layer_url in get_layers(url):
-            downloading(layer_url, user_input_date, metadatas)
-    else:  # elif re.search('/rest/services$', url)
-        for service_url in get_services(url):
-            for layer_url in get_layers(service_url):
+    with st.spinner("Please wait..."):
+        url = arc_url.rstrip('/')
+        if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
+            downloading(url, user_input_date, metadatas)
+        elif re.search('/[A-Z][A-Za-z]+Server$', url):
+            for layer_url in get_layers(url):
                 downloading(layer_url, user_input_date, metadatas)
-print("Downloading finished!")
+        else:  # elif re.search('/rest/services$', url)
+            for service_url in get_services(url):
+                for layer_url in get_layers(service_url):
+                    downloading(layer_url, user_input_date, metadatas)
+    st.success("Downloading finished!")
 
 clear_metadata()  # remove duplicate value
 st.write('Table')
