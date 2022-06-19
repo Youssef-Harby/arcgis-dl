@@ -10,11 +10,10 @@ import datetime
 import pandas as pd
 import re
 
-try:
-    metadatas = load_metadata()
-    # st.write(metadatas)
-except:
-    init_metadata()
+
+init_metadata()
+metadatas = load_metadata()
+# st.write(metadatas)
 
 
 def downloading(url, time_str, metadatas):
@@ -22,11 +21,9 @@ def downloading(url, time_str, metadatas):
     if query is not None:
         layer, layer_data, layer_format = query
         data_time = convet_time(time_str)
-        if data_time == -1:
-            data_time = get_date_time(url)
         if check_update(url, data_time, metadatas):
             write_layer(layer, layer_data, url, layer_format)
-            save_metadata({url: data_time})
+            save_metadata({url: get_date_time(url)})
         else:
             print('Skipping - no update:', url)
 
@@ -45,15 +42,17 @@ st.write('Your selected comparing date is: ', user_date_time)
 if st.button('Download'):
     url = arc_url.rstrip('/')
     if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
-        downloading(url, str(user_input_date), metadatas)
+        downloading(url, user_input_date, metadatas)
     elif re.search('/[A-Z][A-Za-z]+Server$', url):
         for layer_url in get_layers(url):
-            downloading(layer_url, str(user_input_date), metadatas)
+            downloading(layer_url, user_input_date, metadatas)
     else:  # elif re.search('/rest/services$', url)
         for service_url in get_services(url):
             for layer_url in get_layers(service_url):
-                downloading(layer_url, str(user_input_date), metadatas)
+                downloading(layer_url, user_input_date, metadatas)
+print("Downloading finished!")
 
+clear_metadata()  # remove duplicate value
 st.write('Table')
 meta_df = pd.read_csv('metadata.csv')
 selection = aggrid_interactive_table(df=meta_df)

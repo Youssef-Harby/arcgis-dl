@@ -10,21 +10,17 @@ import datetime
 METADATAS_PATH = "metadata.csv"
 
 
-def _check_time_format(input_time: str) -> bool:
-    try:        
-        datetime.datetime.strptime(input_time, '%Y-%m-%d %H:%M:%S')        
-        return True
-    except ValueError:  
-        return False
+# def _check_time_format(input_time: str) -> bool:
+#     try:        
+#         datetime.datetime.strptime(input_time, '%Y-%m-%d %H:%M:%S')        
+#         return True
+#     except ValueError:  
+#         return False
 
 
-def convet_time(input_time: str) -> int:
-    # `input_time` format: YYYY-mm-dd HH:MM:SS, like 2022-06-19 18:15:00
-    if _check_time_format(input_time):
-        time_array = time.strptime(input_time, "%Y-%m-%d %H:%M:%S")
-        return int(round(time.mktime(time_array) * 1000))
-    else:
-        return -1
+def convet_time(input_time: datetime.datetime) -> int:
+    time_array = input_time.timetuple()
+    return int(round(time.mktime(time_array) * 1000))
 
 
 def _get_date_time(json_data: typing.Dict) -> int:
@@ -87,7 +83,7 @@ def clear_metadata(meta_path: str = METADATAS_PATH) -> None:
 
 
 def check_update(layer_url: str, date_time: int, metadatas: typing.Dict) -> bool:
-    if layer_url not in metadatas.keys() or date_time == metadatas[layer_url]:
+    if layer_url not in metadatas.keys() or date_time > metadatas[layer_url]:
         # if `layer_url` not in metadatas (we have not this layer), we need download
         # if input date is later than metadata's date, we need download
         return True
@@ -114,8 +110,10 @@ if __name__ == "__main__":
     meta_dict = load_metadata()
     print(meta_dict)  # should be {layer_link: date_time}
     # test time convet
-    print(convet_time("2022-06-19 10:28:23"))  # should be 1655605703000
-    print(convet_time("2022-80-19 10:28:23"))  # should be -1
+    dt = datetime.datetime(2022, 6, 19, 10, 25, 23)
+    print(convet_time(dt))  # should be 1655605523000
     # test check
-    print(check_update(test_url_1, convet_time("2018-02-12 12:24:15"), meta_dict))  # should be False
-    print(check_update(test_url_2, convet_time("2050-06-20 18:17:00"), meta_dict))  # should be True
+    dt_1 = datetime.datetime(2018, 2, 12, 12, 24, 15)
+    dt_2 = datetime.datetime(2050, 6, 20, 18, 17, 00)
+    print(check_update(test_url_1, convet_time(dt_1), meta_dict))  # should be False
+    print(check_update(test_url_2, convet_time(dt_2), meta_dict))  # should be True

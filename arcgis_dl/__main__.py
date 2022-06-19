@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import re
 from .arcgis_dl import config, get_services, get_layers, get_query, write_layer
 from .metadata import (
@@ -11,8 +12,9 @@ def downloading(url, time_str, metadatas):
     query = get_query(url)
     if query is not None:
         layer, layer_data, layer_format = query
-        data_time = convet_time(time_str)
-        if data_time == -1:
+        if isinstance(data_time, datetime.datetime()):
+            data_time = convet_time(time_str)
+        else:
             data_time = get_date_time(url)
         if check_update(url, data_time, metadatas):
             write_layer(layer, layer_data, url, layer_format)
