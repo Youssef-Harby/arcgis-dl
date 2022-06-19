@@ -30,6 +30,8 @@ def downloading(url, time_str, metadatas):
 st.title('ArcGIS Server Downloader')
 arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',placeholder='Server or Folder or Layer')
 arc_token_1 = st.text_input('ArcGIS Server Token')
+if arc_token_1:
+    config['token'] = arc_token_1
 arc_token_2 = st.text_input('ArcGIS Server Token ALT')
 
 user_input_date = st.date_input(
