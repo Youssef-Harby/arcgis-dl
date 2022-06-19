@@ -3,15 +3,17 @@ import re
 from .arcgis_dl import config, get_services, get_layers, get_query, write_layer
 from .metadata import (
     init_metadata, save_metadata, load_metadata, clear_metadata, \
-    get_date_time, check_update
+    get_date_time, convet_time, check_update
 )
 
 
-def downloading(url, metadatas):
+def downloading(url, time_str, metadatas):
     query = get_query(url)
     if query is not None:
         layer, layer_data, layer_format = query
-        data_time = get_date_time(url)
+        data_time = convet_time(time_str)
+        if data_time == -1:
+            data_time = get_date_time(url)
         if check_update(url, data_time, metadatas):
             write_layer(layer, layer_data, url, layer_format)
             save_metadata({url: data_time})
@@ -20,6 +22,7 @@ def downloading(url, metadatas):
 
 
 def main():
+    # TODO: add input time
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--cache-dir',
                         help='directory to write cache of raw content. default: None')

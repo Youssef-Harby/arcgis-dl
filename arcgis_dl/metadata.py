@@ -1,33 +1,44 @@
 import os.path as osp
 import requests
 import pandas as pd
+import json
 import typing
 import time
+import datetime
 
 
 METADATAS_PATH = "metadata.csv"
 
 
-def _get_date_time(html_str: str) -> str:
-    SSTR = "<b>Last Edit Date:</b>"
-    ESTR = "<br/>"
-    idx_start = html_str.find(SSTR)
-    if idx_start != -1:  # Last Edit Date is find
-        idx_start = html_str.find(SSTR) + len(SSTR)
-        idx_end = idx_start + html_str[idx_start: ].find(ESTR)
-        date_time = html_str[idx_start: idx_end].strip()
-    else:  # Last Edit Date not find
-        tm = time.localtime(time.time())
-        ymd = "/".join([str(tm.tm_mon), str(tm.tm_mday), str(tm.tm_year)])
-        hms = ":".join([str(tm.tm_hour if tm.tm_hour < 12 else tm.tm_hour - 12), str(tm.tm_min), str(tm.tm_sec)])
-        ap = "AM" if tm.tm_hour < 12 else "PM"
-        date_time = " ".join([ymd, hms, ap])
+def _check_time_format(input_time: str) -> bool:
+    try:        
+        datetime.datetime.strptime(input_time, '%Y-%m-%d %H:%M:%S')        
+        return True
+    except ValueError:  
+        return False
+
+
+def convet_time(input_time: str) -> int:
+    # `input_time` format: YYYY-mm-dd HH:MM:SS, like 2022-06-19 18:15:00
+    if _check_time_format(input_time):
+        time_array = time.strptime(input_time, "%Y-%m-%d %H:%M:%S")
+        return int(round(time.mktime(time_array) * 1000))
+    else:
+        return -1
+
+
+def _get_date_time(json_data: typing.Dict) -> int:
+    if "editingInfo" in json_data.keys():
+        date_time = json_data["editingInfo"]["lastEditDate"]
+    else:
+        date_time = int(round(time.time() * 1000))
     return date_time
 
 
-def get_date_time(layer_url: str) -> str:
-    request = requests.get(layer_url)
-    date_time = _get_date_time(request.text)
+def get_date_time(layer_url: str) -> int:
+    request = requests.get(layer_url + "?f=pjson")
+    json_info = json.loads(request.text)
+    date_time = _get_date_time(json_info)
     return date_time
 
 
@@ -75,10 +86,13 @@ def clear_metadata(meta_path: str = METADATAS_PATH) -> None:
         pdd.to_csv(meta_path, index=False, mode="w")
 
 
-def check_update(layer_url: str, date_time: str, metadatas: typing.Dict) -> bool:
-    if layer_url in metadatas.keys() and date_time == metadatas[layer_url]:
-        return False
-    return True
+def check_update(layer_url: str, date_time: int, metadatas: typing.Dict) -> bool:
+    if layer_url not in metadatas.keys() or date_time > metadatas[layer_url]:
+        # if `layer_url` not in metadatas (we have not this layer), we need download
+        # if input date is later than metadata's date, we need download
+        return True
+    # we don't need download
+    return False
 
 
 if __name__ == "__main__":
@@ -87,7 +101,7 @@ if __name__ == "__main__":
     test_url_2 = "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy/Geology/FeatureServer"
     time_1 = get_date_time(test_url_1)
     time_2 = get_date_time(test_url_2)
-    print(time_1 + "\n" + time_2)  # time_1 is fixed and time_2 is real time
+    print(str(time_1) + "\n" + str(time_2))  # time_1 is fixed and time_2 is real time
     # test save csv
     test_dict = {
         test_url_1: time_1,
@@ -99,6 +113,9 @@ if __name__ == "__main__":
     # test read csv
     meta_dict = load_metadata()
     print(meta_dict)  # should be {layer_link: date_time}
+    # test time convet
+    print(convet_time("2022-06-19 10:28:23"))  # should be 1655605703000
+    print(convet_time("2022-80-19 10:28:23"))  # should be -1
     # test check
-    print(check_update(test_url_1, get_date_time(test_url_1), meta_dict))  # should be False
-    print(check_update(test_url_2, get_date_time(test_url_2), meta_dict))  # should be True
+    print(check_update(test_url_1, convet_time("2018-02-12 12:24:15"), meta_dict))  # should be False
+    print(check_update(test_url_2, convet_time("2050-06-20 18:17:00"), meta_dict))  # should be True
