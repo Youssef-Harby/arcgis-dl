@@ -129,5 +129,5 @@ dmypy.json
 
 #myignors
 layers
-*.parquet
+*.csv
 .vscode
