@@ -1,8 +1,10 @@
-import datetime
-from prometheus_client import generate_latest
 import streamlit as st
 from arcgis_dl.arcgis_dl import config, get_services, get_layers, get_query, write_layer
+from arcgis_dl.df_selection_table import aggrid_interactive_table
 from arcgis_dl.metadata import load_metadata, check_update, save_metadata
+from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid.shared import GridUpdateMode
+import pandas as pd
 import re
 
 st.title('ArcGIS Server Downloader')
@@ -45,3 +47,12 @@ if st.button('Download'):
             else:
                 print('Skipping - service not update', service_url)
         save_metadata(metadatas)  # save new metadata
+
+
+meta_df = pd.read_csv('metadata.csv')
+
+selection = aggrid_interactive_table(df=meta_df)
+
+if selection:
+    st.write("You selected:")
+    st.json(selection["selected_rows"])

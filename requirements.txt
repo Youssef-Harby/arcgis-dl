@@ -1,3 +1,4 @@
 requests
 pandas
 typing
+streamlit_aggrid==0.2.3.post2
