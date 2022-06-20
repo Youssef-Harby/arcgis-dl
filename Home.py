@@ -10,7 +10,7 @@ import datetime
 import pandas as pd
 import re
 
-
+st.set_page_config(layout="wide")
 init_metadata()
 metadatas = load_metadata()
 # st.write(metadatas)
