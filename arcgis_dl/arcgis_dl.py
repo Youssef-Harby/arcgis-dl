@@ -3,6 +3,8 @@ import os
 import re
 import traceback
 import requests
+from .log import Loger
+
 
 config = {
     'timeout': 900,
@@ -12,6 +14,8 @@ config = {
     'layer_format': 'geojson',
     'token': None,
 }
+loger = Loger("arcgis_dl")
+
 
 def makedirs(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -53,7 +57,7 @@ def simplify_path(layer_data, layer_url, layer_format):
 def write_layer(layer, layer_data, layer_url, layer_format):
     path = os.path.join(config['layer_dir'],
                         simplify_path(layer_data, layer_url, layer_format))
-    print('Writing', path)
+    loger.info("Writing: {}.".format(path))
     write_json(layer, path)
 
 def sort_dict(d):
@@ -86,23 +90,39 @@ def get_json(url, params={}):
     if config['cache_dir'] is not None:
         cache_path = os.path.join(config['cache_dir'], strip_scheme(prepared.url))
 
-    try:
-        if cache_path is not None and os.path.exists(cache_path):
-            print('Getting from cache', prepared.url)
-            return read_json(cache_path)
-        print('Getting from server', prepared.url)
-        session = requests.Session()
-        response = session.send(prepared, timeout=config['timeout'])
-        if cache_path is not None:
-            write_binary(response.content, cache_path)
-        data = response.json()
-        if data.get('error', {}).get('code') == 498:  # Invalid token
-            return get_json(url, params | {'token': None})  # Try without the token
-        return data
-    except Exception as exception:  # TODO: Narrow down the exceptions
-        print('Ignoring exception', exception)
-        print(traceback.format_exc())
+    if cache_path is not None and os.path.exists(cache_path):
+        loger.info("Getting from cache: {}.".format(prepared.url))
+        return read_json(cache_path)
+    loger.info("Getting from server: {}.".format(prepared.url))
+    session = requests.Session()
+    # FIXME: try to fix timeout
+    # if timeout or etc, it will try again 2 times 
+    reconnect = 0
+    while reconnect < 3:
+        try:
+            response = session.send(prepared, timeout=config['timeout'])
+            break
+        except (requests.exceptions.RequestException, ValueError):
+            loger.info("Failed to get data for the {} time.".format(str(reconnect + 1)))
+            reconnect += 1
+    if reconnect == 3:
+        loger.info("[OUR WARNING] Can\'t get data from: {}.".format(prepared.url))
+        loger.info(traceback.format_exc())
         return {}
+    if cache_path is not None:
+        write_binary(response.content, cache_path)
+
+    # FIXME: try to fix json decoder error
+    try:
+        data = response.json()
+    except Exception as exception:
+        loger.info(exception)
+        loger.info("[OUR WARNING] Can\'t decode json from: {}.".format(response))
+        loger.info(traceback.format_exc())
+        return {}
+    if data.get('error', {}).get('code') == 498:  # Invalid token
+        return get_json(url, params | {'token': None})  # Try without the token
+    return data
 
 def get_services(site_url):
     queue = [site_url]
@@ -110,63 +130,63 @@ def get_services(site_url):
 
     while queue:
         url, *queue = queue
-        print('Getting services', url)
+        loger.info("Getting services: {}.".format(url))
         site_data = get_json(url)
 
         if not site_data:
-            print('Skipping - no server data')
+            loger.info("Skipping - no server data.")
             continue
 
         if site_data.get('folders'):
             for folder in site_data['folders']:
                 folder_url = site_url + '/'
-                print('Found folder', folder_url)
+                loger.info("Found folder: {}.".format(folder_url))
                 queue.append(folder_url)
 
         if site_data.get('services'):
             for service in site_data['services']:
                 if service['name'] == 'SampleWorldCities':
-                    print(f"Skipping - {service['name']}")
+                    loger.info("Skipping - {}.".format(service['name']))
                     continue
 
                 service_url = site_url + '/' + service['name'].split('/')[1] + '/' + service['type']
-                print('Found service', service_url)
+                loger.info("Found service: {}.".format(service_url))
                 service_urls.append(service_url)
 
     return service_urls
 
 def get_layers(service_url):
-    print('Getting layers', service_url)
+    loger.info("Getting layers: {}.".format(service_url))
     service_data = get_json(service_url)
 
     layer_urls = []
 
     if not service_data:
-        print('Skipping - no service data')
+        loger.info("Skipping - no service data.")
         return layer_urls
 
     for layer in service_data.get('layers', []):
         layer_url = service_url + '/' + str(layer['id'])
-        print('Found layer', layer_url)
+        loger.info("Found layer: {}.".format(layer_url))
         layer_urls.append(layer_url)
 
     for layer in service_data.get('tables', []):
         layer_url = service_url + '/' + str(layer['id'])
-        print('Found layer', layer_url)
+        loger.info("Found layer: {}.".format(layer_url))
         layer_urls.append(layer_url)
 
     return layer_urls
 
 def get_query(layer_url):
-    print('Getting query', layer_url)
+    loger.info("Getting query: {}.".format(layer_url))
     layer_data = get_json(layer_url)
 
     if not layer_data:
-        print('Skipping - no layer data')
+        loger.info("Skipping - no layer data.")
         return
 
     if layer_data.get('type').lower() not in config['layer_type']:
-        print('Skipping - layer type is', layer_data.get('type'))
+        loger.info("Skipping - layer type is: {}.".format(layer_data.get('type')))
         return
 
     supportedQueryFormats = layer_data.get('supportedQueryFormats', '').lower().split(', ')
@@ -181,10 +201,10 @@ def get_query(layer_url):
     if config['layer_format'] in supportedQueryFormats:
         query_params['f'] = config['layer_format']
     elif 'pjson' in supportedQueryFormats:
-        print('Falling back to json query format -', config['layer_format'], 'is not supported')
+        loger.info("Falling back to json query format - {} is not supported.".format(config['layer_format']))
         query_params['f'] = 'pjson'
     else:
-        print('Skipping - supported query formats are', supportedQueryFormats)
+        loger.info("Skipping - supported query formats are: {}.".format(supportedQueryFormats))
         return
 
     # https://developers.arcgis.com/rest/services-reference/query-feature-service-layer-.htm
@@ -192,7 +212,7 @@ def get_query(layer_url):
 
     count_params = {'returnCountOnly': True, 'where': '9999=9999'}
     count_data = get_json(layer_url + '/query', params=count_params)
-    print('Feature count is', count_data.get('count'))
+    loger.info("Feature count is: {}.".format(count_data.get('count')))
 
     if supportsPagination:
         query_params['resultOffset'] = 0
@@ -210,7 +230,7 @@ def get_query(layer_url):
                     oid_field = field['name']
                     break
             else:
-                print('Skipping - no paginiation support and no esriFieldTypeOID')
+                loger.info("Skipping - no paginiation support and no esriFieldTypeOID.")
                 return
 
         query_params['orderByFields'] = oid_field
@@ -223,7 +243,7 @@ def get_query(layer_url):
 
         if first:
             if not query_data:
-                print('Skipping - no query data')
+                loger.info("Skipping - no query data.")
                 return
 
             layer = query_data
@@ -231,7 +251,7 @@ def get_query(layer_url):
             if not query_data or 'features' not in query_data:
                 expected = count_data.get('count')
                 actual = len(layer['features']) if 'features' in layer else None
-                print(f'Incomplete query data - retrieved {actual} of {expected} features')
+                loger.info("Incomplete query data - retrieved {} of {} features.".format(actual, expected))
                 break
 
             layer['features'] += query_data['features']
