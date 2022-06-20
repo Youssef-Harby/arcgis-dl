@@ -7,7 +7,7 @@ import time
 import datetime
 
 
-METADATAS_PATH = "metadata.csv"
+METADATAS_PATH = "metadata/metadata.csv"
 
 
 # def _check_time_format(input_time: str) -> bool:

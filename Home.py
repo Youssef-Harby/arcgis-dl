@@ -57,7 +57,7 @@ if st.button('Download'):
 
 clear_metadata()  # remove duplicate value
 st.write('Table')
-meta_df = pd.read_csv('metadata.csv')
+meta_df = pd.read_csv('metadata/metadata.csv')
 selection = aggrid_interactive_table(df=meta_df)
 
 if selection:
