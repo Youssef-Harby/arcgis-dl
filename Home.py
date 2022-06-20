@@ -53,6 +53,7 @@ if st.button('Download'):
                 for layer_url in get_layers(service_url):
                     downloading(layer_url, user_input_date, metadatas)
     st.success("Downloading finished!")
+    config['token'] = None
 
 clear_metadata()  # remove duplicate value
 st.write('Table')
