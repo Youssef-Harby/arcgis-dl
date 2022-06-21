@@ -107,7 +107,7 @@ def get_json(url, params={}):
             reconnect += 1
     if reconnect == 3:
         loger.info("[OUR WARNING] Can\'t get data from: {}.".format(prepared.url))
-        loger.info(traceback.format_exc())
+        loger.info(str(traceback.format_exc()))
         return {}
     if cache_path is not None:
         write_binary(response.content, cache_path)
@@ -118,7 +118,7 @@ def get_json(url, params={}):
     except Exception as exception:
         loger.info(exception)
         loger.info("[OUR WARNING] Can\'t decode json from: {}.".format(response))
-        loger.info(traceback.format_exc())
+        loger.info(str(traceback.format_exc()))
         return {}
     if data.get('error', {}).get('code') == 498:  # Invalid token
         return get_json(url, params | {'token': None})  # Try without the token

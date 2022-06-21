@@ -34,11 +34,11 @@ def get_date_time(layer_url: str) -> int:
 
 def init_metadata(meta_path: str = METADATAS_PATH) -> None:
     if osp.exists(meta_path):
-        loger.info("`metadata.csv` is exist, skip create new file.")
+        loger.info("The `metadata.csv` is exist, skip create new file.")
     else:
         columns = ["LayerLink", "LastEditDate"]
         pd.DataFrame(data=None, columns=columns).to_csv(meta_path, index=False, mode="w")
-        loger.info("`metadata.csv` is not exist, create a new file.")
+        loger.info("The `metadata.csv` is not exist, create a new file.")
 
 
 def save_metadata(meta_dict: typing.Dict, 
@@ -49,7 +49,7 @@ def save_metadata(meta_dict: typing.Dict,
     columns = ["LayerLink", "LastEditDate"]
     pdd = pd.DataFrame(data=data_list, columns=columns)
     pdd.to_csv(meta_path, header=False, index=False, mode="a")
-    loger.info("`metadata.csv` has been updated.")
+    loger.info("The `metadata.csv` has been updated.")
 
 
 def _df2dict(df: pd.DataFrame) -> typing.Dict:
@@ -68,7 +68,7 @@ def load_metadata(meta_path: str = METADATAS_PATH) -> typing.Dict:
     # duplicate values keep the latest
     pdd.drop_duplicates(subset=["LayerLink"], keep="last", inplace=True)
     meta_dict = _df2dict(pdd)
-    loger.info("`metadata.csv` already loaded.")
+    loger.info("The `metadata.csv` already loaded.")
     return meta_dict
 
 
@@ -78,7 +78,7 @@ def clear_metadata(meta_path: str = METADATAS_PATH) -> None:
         # duplicate values keep the latest
         pdd.drop_duplicates(subset=["LayerLink"], keep="last", inplace=True)
         pdd.to_csv(meta_path, index=False, mode="w")
-    loger.info("`metadata.csv` has deleted duplicate values.")
+    loger.info("The `metadata.csv` has deleted duplicate values.")
 
 
 def check_update(layer_url: str, date_time: int, metadatas: typing.Dict) -> bool:
