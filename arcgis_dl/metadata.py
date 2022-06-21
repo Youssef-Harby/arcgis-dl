@@ -1,3 +1,4 @@
+import os
 import os.path as osp
 import requests
 import pandas as pd
@@ -8,7 +9,7 @@ import datetime
 from .log import Loger
 
 
-METADATAS_PATH = "metadata.csv"
+METADATAS_PATH = "metadata/metadata.csv"
 loger = Loger("metadate")
 
 
@@ -36,6 +37,9 @@ def init_metadata(meta_path: str = METADATAS_PATH) -> None:
     if osp.exists(meta_path):
         loger.info("The `metadata.csv` is exist, skip create new file.")
     else:
+        meta_dir = osp.dirname(METADATAS_PATH)
+        if not osp.exists(meta_dir):
+            os.makedirs(meta_dir)
         columns = ["LayerLink", "LastEditDate"]
         pd.DataFrame(data=None, columns=columns).to_csv(meta_path, index=False, mode="w")
         loger.info("The `metadata.csv` is not exist, create a new file.")

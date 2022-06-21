@@ -1,0 +1,36 @@
+version: '3'
+
+volumes:
+  layers:
+  metadata:
+
+services:
+  arcgis-dl:
+    build: .
+    container_name: arcgis-dl
+    command: streamlit run Home.py
+    volumes:
+        - layers:/usr/src/arcgis-dl-app/layers
+        - metadata:/usr/src/arcgis-dl-app/metadata
+    ports:
+      - ${port}:8501
+    env_file:
+      - .env
+    restart: on-failure
+    healthcheck:
+      test: "exit 0"
+    
+  file-browser:
+    image: filebrowser/filebrowser
+    container_name: file-browser
+    # user: 1000:1000
+    ports:
+      - "5006:80"
+    volumes:
+      - layers:/srv
+      - ./filebrowser/database.db:/database.db
+    depends_on:
+      - arcgis-dl
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true

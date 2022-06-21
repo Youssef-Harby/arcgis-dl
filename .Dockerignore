@@ -130,6 +130,5 @@ dmypy.json
 #myignors
 layers
 *.csv
-*.log
 .vscode
 filebrowser

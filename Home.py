@@ -1,6 +1,6 @@
 import streamlit as st
 from arcgis_dl.log import Loger
-from arcgis_dl.arcgis_dl import get_services, get_layers, get_query, write_layer
+from arcgis_dl.arcgis_dl import config, get_services, get_layers, get_query, write_layer
 from arcgis_dl.df_selection_table import aggrid_interactive_table
 from arcgis_dl.metadata import (
     init_metadata, save_metadata, load_metadata, clear_metadata, \
@@ -10,9 +10,11 @@ import datetime
 import pandas as pd
 import re
 
+
 # for debug
 loger = Loger("home", is_init=True)
 # inint metadata
+st.set_page_config(layout="wide")
 init_metadata()
 metadatas = load_metadata()
 
@@ -32,7 +34,8 @@ def downloading(url, time_str, metadatas):
 st.title('ArcGIS Server Downloader')
 arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',placeholder='Server or Folder or Layer')
 arc_token_1 = st.text_input('ArcGIS Server Token')
-arc_token_2 = st.text_input('ArcGIS Server Token ALT')
+if arc_token_1:
+    config['token'] = arc_token_1
 
 user_input_date = st.date_input(
     "Comparing data changes date: ")
@@ -50,21 +53,24 @@ st.write('Your selected comparing date is: ', user_date_time)
 
 if st.button('Download'):
     loger.info("Downloading start!")
-    url = arc_url.rstrip('/')
-    if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
-        downloading(url, user_input_date, metadatas)
-    elif re.search('/[A-Z][A-Za-z]+Server$', url):
-        for layer_url in get_layers(url):
-            downloading(layer_url, user_input_date, metadatas)
-    else:  # elif re.search('/rest/services$', url)
-        for service_url in get_services(url):
-            for layer_url in get_layers(service_url):
+    with st.spinner("Please wait..."):
+        url = arc_url.rstrip('/')
+        if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
+            downloading(url, user_input_date, metadatas)
+        elif re.search('/[A-Z][A-Za-z]+Server$', url):
+            for layer_url in get_layers(url):
                 downloading(layer_url, user_input_date, metadatas)
+        else:  # elif re.search('/rest/services$', url)
+            for service_url in get_services(url):
+                for layer_url in get_layers(service_url):
+                    downloading(layer_url, user_input_date, metadatas)
     loger.info("Downloading finished!")
+    st.success("Downloading finished!")
+    config['token'] = None
 
 clear_metadata()  # remove duplicate value
 st.write('Table')
-meta_df = pd.read_csv('metadata.csv')
+meta_df = pd.read_csv('metadata/metadata.csv')
 selection = aggrid_interactive_table(df=meta_df)
 
 if selection:

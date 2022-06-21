@@ -3,7 +3,7 @@ import logging
 
 
 PATH = osp.abspath(osp.dirname(osp.dirname(__file__)))
-LOG_FILE_PATH = osp.join(PATH, "DEBUG.log")
+LOG_FILE_PATH = osp.join(PATH, "auto_debug.log")
 
 
 class Loger:
