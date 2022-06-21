@@ -3,7 +3,7 @@ from arcgis_dl.log import Loger
 from arcgis_dl.arcgis_dl import config, get_services, get_layers, get_query, write_layer
 from arcgis_dl.df_selection_table import aggrid_interactive_table
 from arcgis_dl.metadata import (
-    init_metadata, save_metadata, load_metadata, clear_metadata, \
+    init_metadata, save_metadata, load_metadata, clear_metadata,
     get_date_time, convet_time, check_update
 )
 import datetime
@@ -31,11 +31,22 @@ def downloading(url, time_str, metadatas):
         else:
             loger.info("Skipping - no update: {}.".format(url))
 
+
 st.title('ArcGIS Server Downloader')
-arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',placeholder='Server or Folder or Layer')
+arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',
+                        placeholder='Server or Folder or Layer')
+
 arc_token_1 = st.text_input('ArcGIS Server Token')
-if arc_token_1:
+if arc_token_1 is not None:
     config['token'] = arc_token_1
+else:
+    config['token'] = None
+
+arc_timeout = st.text_input('ArcGIS Server Timeout', "900")
+if arc_timeout is not None:
+    config['timeout'] = arc_timeout
+else:
+    config['timeout'] = None
 
 user_input_date = st.date_input(
     "Comparing data changes date: ")
@@ -43,7 +54,8 @@ user_input_time = st.time_input(
     "Set an alarm for: ")
 if isinstance(user_input_date, datetime.date):
     user_input_date = user_input_date
-    user_date_time = datetime.datetime.combine(user_input_date, user_input_time)
+    user_date_time = datetime.datetime.combine(
+        user_input_date, user_input_time)
     loger.info("Selected comparing date is {}.".format(str(user_date_time)))
 else:
     user_date_time = datetime.datetime.now()
