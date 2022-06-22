@@ -33,18 +33,23 @@ def downloading(url, time_str, metadatas):
 
 
 st.title('ArcGIS Server Downloader')
-arc_url = st.text_input('ArcGIS Server Url', 'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',
+arc_url = st.text_input('ArcGIS Server Url', 
+                        'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',
                         placeholder='Server or Folder or Layer')
 
 arc_token_1 = st.text_input('ArcGIS Server Token')
-if arc_token_1 is not None:
+# if you dont input, `text_input` will return str (`""` rather than `None`)
+# reference: https://docs.streamlit.io/library/api-reference/widgets/st.text_input
+if arc_token_1 != "":
     config['token'] = arc_token_1
 else:
     config['token'] = None
 
 arc_timeout = st.text_input('ArcGIS Server Timeout', "900")
-if arc_timeout is not None:
-    config['timeout'] = arc_timeout
+if arc_timeout != "":
+    # Timeout value connect was 900, but it must be an int, float or None
+    # we should convert str to int (`text_input` will return str)
+    config['timeout'] = int(arc_timeout)
 else:
     config['timeout'] = None
 

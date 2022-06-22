@@ -103,7 +103,7 @@ def get_json(url, params={}):
             response = session.send(prepared, timeout=config['timeout'])
             break
         except (requests.exceptions.RequestException, ValueError):
-            loger.info("Failed to get data for the {} time.".format(str(reconnect + 1)))
+            loger.info("Failed to get data for the time {}.".format(str(reconnect + 1)))
             reconnect += 1
     if reconnect == 3:
         loger.info("[OUR WARNING] Can\'t get data from: {}.".format(prepared.url))

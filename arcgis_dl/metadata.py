@@ -21,13 +21,17 @@ def convet_time(input_time: datetime.datetime) -> int:
 def _get_date_time(json_data: typing.Dict) -> int:
     if "editingInfo" in json_data.keys():
         date_time = json_data["editingInfo"]["lastEditDate"]
+        loger.info("Get time from url.")
     else:
         date_time = int(round(time.time() * 1000))
+        loger.info("Can\'t get time from url, current time will be used.")
     return date_time
 
 
 def get_date_time(layer_url: str) -> int:
-    request = requests.get(layer_url + "?f=pjson")
+    json_layer_url = layer_url + "?f=pjson"
+    request = requests.get(json_layer_url)
+    loger.info("Try to get time from {}.".format(json_layer_url))
     json_info = json.loads(request.text)
     date_time = _get_date_time(json_info)
     return date_time
