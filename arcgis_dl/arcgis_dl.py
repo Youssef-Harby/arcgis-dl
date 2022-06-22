@@ -121,7 +121,9 @@ def get_json(url, params={}):
         loger.info(str(traceback.format_exc()))
         return {}
     if data.get('error', {}).get('code') == 498:  # Invalid token
-        return get_json(url, params | {'token': None})  # Try without the token
+        params.update({'token': None})
+        # `|` is a op in python >= 3.9
+        return get_json(url, params)  # Try without the token
     return data
 
 def get_services(site_url):
