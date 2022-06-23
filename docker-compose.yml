@@ -2,7 +2,6 @@ version: '3'
 
 volumes:
   layers:
-  metadata:
 
 services:
   arcgis-dl:
@@ -11,7 +10,7 @@ services:
     command: streamlit run Home.py
     volumes:
         - layers:/usr/src/arcgis-dl-app/layers
-        - metadata:/usr/src/arcgis-dl-app/metadata
+        - ./metadata:/usr/src/arcgis-dl-app/metadata
     ports:
       - ${port}:8501
     env_file:
