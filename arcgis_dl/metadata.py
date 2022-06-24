@@ -10,6 +10,7 @@ from .log import Loger
 
 
 METADATAS_PATH = "metadata/metadata.csv"
+COLUMNS = ["LayerLink", "LastEditDate", "NumFeatures", "Offset"]
 loger = Loger("metadate")
 
 
@@ -44,8 +45,7 @@ def init_metadata(meta_path: str = METADATAS_PATH) -> None:
         meta_dir = osp.dirname(METADATAS_PATH)
         if not osp.exists(meta_dir):
             os.makedirs(meta_dir)
-        columns = ["LayerLink", "LastEditDate"]
-        pd.DataFrame(data=None, columns=columns).to_csv(meta_path, index=False, mode="w")
+        pd.DataFrame(data=None, columns=COLUMNS).to_csv(meta_path, index=False, mode="w")
         loger.info("The `metadata.csv` is not exist, create a new file.")
 
 
@@ -53,9 +53,8 @@ def save_metadata(meta_dict: typing.Dict,
                   meta_path: str = METADATAS_PATH) -> None:
     data_list = []
     for k, v in meta_dict.items():
-        data_list.append([k, v])
-    columns = ["LayerLink", "LastEditDate"]
-    pdd = pd.DataFrame(data=data_list, columns=columns)
+        data_list.append([k, *v])
+    pdd = pd.DataFrame(data=data_list, columns=COLUMNS)
     pdd.to_csv(meta_path, header=False, index=False, mode="a")
     loger.info("The `metadata.csv` has been updated.")
 
@@ -67,6 +66,10 @@ def _df2dict(df: pd.DataFrame) -> typing.Dict:
         keys.append(link)
     for date in df["LastEditDate"]:
         values.append(date)
+    for link, date, feats, offset in zip(
+        df["LayerLink"], df["LastEditDate"], df["NumFeatures"], df["Offset"]):
+        keys.append(link)
+        values.append((date, feats, offset))
     meta_dict = dict(zip(keys, values))
     return meta_dict
 

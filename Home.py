@@ -26,7 +26,7 @@ def downloading(url, time_str, metadatas):
         data_time = convet_time(time_str)
         if check_update(url, data_time, metadatas):
             write_layer(layer, layer_data, url, layer_format)
-            save_metadata({url: get_date_time(url)})
+            save_metadata({url: (get_date_time(url), 800000, 2000)})  # FIXME: test write now
             loger.info("Update metadata: add {}.".format(url))
         else:
             loger.info("Skipping - no update: {}.".format(url))
@@ -44,6 +44,10 @@ if arc_token_1 != "":
     config['token'] = arc_token_1
 else:
     config['token'] = None
+
+# download offset
+arc_offset = st.text_input("Offset With Downloading", "0")
+config['offset'] = int(arc_offset) if arc_offset != "" else 0
 
 arc_timeout = st.text_input('ArcGIS Server Timeout', "900")
 if arc_timeout != "":

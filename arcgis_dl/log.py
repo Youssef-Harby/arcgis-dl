@@ -1,3 +1,4 @@
+import os
 import os.path as osp
 import logging
 
@@ -26,6 +27,9 @@ class Loger:
             self._setup_logger()
         
     def _setup_logger(self) -> None:
+        meta_dir = osp.dirname(LOG_FILE_PATH)
+        if not osp.exists(meta_dir):
+            os.makedirs(meta_dir)
         self.log = logging.getLogger(self.log_name)
         self.log.setLevel(logging.INFO)
         fh = logging.FileHandler(

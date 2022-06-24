@@ -13,6 +13,7 @@ config = {
     'layer_type': ['feature layer', 'table'],
     'layer_format': 'geojson',
     'token': None,
+    'offset': 0,
 }
 loger = Loger("arcgis_dl")
 
