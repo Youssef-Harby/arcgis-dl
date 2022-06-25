@@ -93,7 +93,7 @@ def clear_metadata(meta_path: str = METADATAS_PATH) -> None:
 
 
 def check_update(layer_url: str, date_time: int, metadatas: typing.Dict) -> bool:
-    if layer_url not in metadatas.keys() or date_time > metadatas[layer_url]:
+    if layer_url not in metadatas.keys() or date_time > metadatas[layer_url][0]:
         # if `layer_url` not in metadatas (we have not this layer), we need download
         # if input date is later than metadata's date, we need download
         return True

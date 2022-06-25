@@ -22,11 +22,13 @@ metadatas = load_metadata()
 def downloading(url, time_str, metadatas):
     query = get_query(url)
     if query is not None:
-        layer, layer_data, layer_format = query
+        layer, layer_data, parameters, fcount = query
+        layer_format = parameters["f"]
+        offset = parameters["resultOffset"]
         data_time = convet_time(time_str)
         if check_update(url, data_time, metadatas):
             write_layer(layer, layer_data, url, layer_format)
-            save_metadata({url: (get_date_time(url), 800000, 2000)})  # FIXME: test write now
+            save_metadata({url: (get_date_time(url), fcount, offset)})
             loger.info("Update metadata: add {}.".format(url))
         else:
             loger.info("Skipping - no update: {}.".format(url))
@@ -50,12 +52,10 @@ arc_offset = st.text_input("Offset With Downloading", "0")
 config['offset'] = int(arc_offset) if arc_offset != "" else 0
 
 arc_timeout = st.text_input('ArcGIS Server Timeout', "900")
-if arc_timeout != "":
-    # Timeout value connect was 900, but it must be an int, float or None
-    # we should convert str to int (`text_input` will return str)
-    config['timeout'] = int(arc_timeout)
-else:
-    config['timeout'] = None
+# Timeout value connect was 900, but it must be an int, float or None
+# we should convert str to int (`text_input` will return str)
+config['timeout'] = int(arc_timeout) if arc_timeout != "" else 900
+
 
 user_input_date = st.date_input(
     "Comparing data changes date: ")

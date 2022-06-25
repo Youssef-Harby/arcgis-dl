@@ -188,6 +188,10 @@ def get_query(layer_url):
         loger.info("Skipping - no layer data.")
         return
 
+    if layer_data.get('type') is None:
+        loger.info("Skipping - layer type is: None.")
+        return
+
     if layer_data.get('type').lower() not in config['layer_type']:
         loger.info("Skipping - layer type is: {}.".format(layer_data.get('type')))
         return
@@ -218,7 +222,7 @@ def get_query(layer_url):
     loger.info("Feature count is: {}.".format(count_data.get('count')))
 
     if supportsPagination:
-        query_params['resultOffset'] = 0
+        query_params['resultOffset'] = config["offset"]
     else:
         # If paginiation is not supported, then try to find a field of type
         # esriFieldTypeOID and emulate paginiation
@@ -275,4 +279,4 @@ def get_query(layer_url):
     if 'exceededTransferLimit' in layer:
         del layer['exceededTransferLimit']
 
-    return layer, layer_data, query_params['f']
+    return layer, layer_data, query_params, count_data.get('count')
