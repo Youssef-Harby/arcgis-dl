@@ -35,11 +35,17 @@ def downloading(url, time_str, metadatas):
 
 
 st.title('ArcGIS Server Downloader')
-arc_url = st.text_input('ArcGIS Server Url', 
+arc_url = st.text_input('ArcGIS Server Url',
                         'https://sampleserver6.arcgisonline.com/arcgis/rest/services/Energy',
                         placeholder='Server or Folder or Layer')
 
 arc_token_1 = st.text_input('ArcGIS Server Token')
+
+layer_urls = []
+if st.button('Get the Layers'):
+    layer_urls = get_layers(arc_url)
+
+selected_layers = st.multiselect("select Layers to Download", layer_urls)
 # if you dont input, `text_input` will return str (`""` rather than `None`)
 # reference: https://docs.streamlit.io/library/api-reference/widgets/st.text_input
 if arc_token_1 != "":
