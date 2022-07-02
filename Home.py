@@ -41,11 +41,18 @@ arc_url = st.text_input('ArcGIS Server Url',
 
 arc_token_1 = st.text_input('ArcGIS Server Token')
 
-layer_urls = []
-if st.button('Get the Layers'):
-    layer_urls = get_layers(arc_url)
+downloading_option = st.radio(
+     "Downloading methods",
+     ('Select the Layers', 'Download All Layers'))
 
-selected_layers = st.multiselect("select Layers to Download", layer_urls)
+if downloading_option == 'Select the Layers':
+    layer_urls = []
+    if st.button('Get the Layers'):
+        layer_urls = get_layers(arc_url)
+
+    selected_layers = st.multiselect("select Layers to Download", layer_urls)
+else:
+    pass
 # if you dont input, `text_input` will return str (`""` rather than `None`)
 # reference: https://docs.streamlit.io/library/api-reference/widgets/st.text_input
 if arc_token_1 != "":
