@@ -43,32 +43,37 @@ arc_token_1 = st.text_input('ArcGIS Server Token')
 
 downloading_option = st.radio(
      "Downloading methods",
-     ('Select the Layers', 'Download All Layers'))
+     ('Select the Layers', 'Download All Layers'),
+     index=1)
 
 if downloading_option == 'Select the Layers':
-    layer_urls = []
-    if st.button('Get the Layers'):
-        layer_urls = get_layers(arc_url)
-
-    selected_layers = st.multiselect("select Layers to Download", layer_urls)
+    layer_urls = get_layers(arc_url)
+    # i think just need to display layer's name
+    layer_names = [layer_url.replace(arc_url + "/", "") for layer_url in layer_urls]
+    selected_names = st.multiselect("Select Layers to Download", layer_names)
+    selected_layers = [arc_url + "/" + selected_name for selected_name in selected_names]
 else:
-    pass
+    selected_layers = get_layers(arc_url)
+loger.info("You selected: {}.".format(selected_layers))
+
 # if you dont input, `text_input` will return str (`""` rather than `None`)
 # reference: https://docs.streamlit.io/library/api-reference/widgets/st.text_input
 if arc_token_1 != "":
     config['token'] = arc_token_1
 else:
     config['token'] = None
+loger.info("Token is: {}.".format(config['token']))
 
 # download offset
 arc_offset = st.text_input("Offset With Downloading", "0")
 config['offset'] = int(arc_offset) if arc_offset != "" else 0
+loger.info("Offset is: {}.".format(config['offset']))
 
 arc_timeout = st.text_input('ArcGIS Server Timeout', "900")
 # Timeout value connect was 900, but it must be an int, float or None
 # we should convert str to int (`text_input` will return str)
 config['timeout'] = int(arc_timeout) if arc_timeout != "" else 900
-
+loger.info("Timeout is: {}.".format(config['timeout']))
 
 user_input_date = st.date_input(
     "Comparing data changes date: ")
@@ -92,11 +97,11 @@ if st.button('Download'):
         if re.search('/[A-Z][A-Za-z]+Server/[^/]+$', url):
             downloading(url, user_input_date, metadatas)
         elif re.search('/[A-Z][A-Za-z]+Server$', url):
-            for layer_url in get_layers(url):
+            for layer_url in selected_layers:  # get_layers(url):
                 downloading(layer_url, user_input_date, metadatas)
         else:  # elif re.search('/rest/services$', url)
             for service_url in get_services(url):
-                for layer_url in get_layers(service_url):
+                for layer_url in selected_layers:  # get_layers(service_url):
                     downloading(layer_url, user_input_date, metadatas)
     loger.info("Downloading finished!")
     st.success("Downloading finished!")
