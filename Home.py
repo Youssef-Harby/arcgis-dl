@@ -9,15 +9,18 @@ from arcgis_dl.metadata import (
 import datetime
 import pandas as pd
 import re
+import urllib3
+import urllib3.contrib.pyopenssl
 
-
+# urllib3 setting
+urllib3.disable_warnings(urllib3.connectionpool.InsecureRequestWarning)
+urllib3.contrib.pyopenssl.inject_into_urllib3()
 # for debug
 loger = Loger("home", is_init=True)
 # inint metadata
 st.set_page_config(layout="wide")
 init_metadata()
 metadatas = load_metadata()
-
 
 def downloading(url, time_str, metadatas):
     query = get_query(url)

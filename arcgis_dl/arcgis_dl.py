@@ -3,15 +3,16 @@ import os
 import re
 import traceback
 import requests
+import time
+import random
 from .log import Loger
-
 
 config = {
     'timeout': 900,
     'cache_dir': None,
     'layer_dir': 'layers',
     'layer_type': ['feature layer', 'table'],
-    'layer_format': 'geojson',
+    'layer_format': 'json',
     'token': None,
     'offset': 0,
 }
@@ -96,16 +97,20 @@ def get_json(url, params={}):
         return read_json(cache_path)
     loger.info("Getting from server: {}.".format(prepared.url))
     session = requests.Session()
+    session.trust_env = False
     # FIXME: try to fix timeout
     # if timeout or etc, it will try again 2 times 
     reconnect = 0
     while reconnect < 3:
         try:
-            response = session.send(prepared, timeout=config['timeout'])
+            loger.info("Start send.")
+            response = session.send(prepared, timeout=config['timeout'], verify=False)
             break
-        except (requests.exceptions.RequestException, ValueError):
+        except (requests.exceptions.RequestException, ValueError) as er:
             loger.info("Failed to get data for the time {}.".format(str(reconnect + 1)))
+            loger.info(er)
             reconnect += 1
+            time.sleep(random.random() * 10)
     if reconnect == 3:
         loger.info("[OUR WARNING] Can\'t get data from: {}.".format(prepared.url))
         loger.info(str(traceback.format_exc()))
