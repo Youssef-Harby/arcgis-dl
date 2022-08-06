@@ -31,7 +31,7 @@ def _get_date_time(json_data: typing.Dict) -> int:
 
 def get_date_time(layer_url: str) -> int:
     json_layer_url = layer_url + "?f=pjson"
-    request = requests.get(json_layer_url)
+    request = requests.get(json_layer_url, verify=False)
     loger.info("Try to get time from {}.".format(json_layer_url))
     json_info = json.loads(request.text)
     date_time = _get_date_time(json_info)
