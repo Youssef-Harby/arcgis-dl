@@ -2,4 +2,5 @@ streamlit
 requests
 pandas
 typing
-streamlit_aggrid
+streamlit-aggrid==0.3.1
+pyOpenSSL
